@@ -1,6 +1,7 @@
-# Full stack: PostgreSQL, the Spring Boot backend and the React frontend (http://localhost:3000).
-# User code runs in DOCKER sandbox mode: one throwaway, network-less container per run, started
-# through the host's Docker socket.
+# Full stack on one machine: PostgreSQL, the backend and the frontend (http://localhost:3000).
+#   docker compose up --build
+# User code runs in DOCKER sandbox mode: one throwaway, network-less container per run,
+# started through the host's Docker socket.
 services:
   db:
     image: postgres:17-alpine
@@ -17,6 +18,10 @@ services:
 
   backend:
     build: ./backend
+    image: algocode-backend:local
+    # Root only to reach the host's Docker socket; in Kubernetes the backend runs as uid 10001
+    # and talks to a Docker-in-Docker sidecar over localhost instead.
+    user: "0"
     depends_on:
       db:
         condition: service_healthy
@@ -25,16 +30,20 @@ services:
       ALGOCODE_DB_USER: algocode
       ALGOCODE_DB_PASSWORD: algocode
       ALGOCODE_SANDBOX_MODE: DOCKER
-      ALGOCODE_CORS_ORIGINS: http://localhost:3000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"
 
   frontend:
     build: ./frontend
+    image: algocode-frontend:local
     depends_on:
       - backend
+    environment:
+      BACKEND_URL: http://backend:8080
     ports:
-      - "3000:80"
+      - "3000:8080"
 
 volumes:
   db-data:

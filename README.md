@@ -30,14 +30,47 @@ Open http://localhost:5173. There are no accounts yet: the browser picks a handl
 > `LOCAL` sandbox mode runs submissions in a child JVM on your machine with only a heap cap
 > and a kill timer. It is for development. Use `DOCKER` mode anywhere other people can submit code.
 
-## Full stack with Docker
+## Run with Docker (local)
 
 ```bash
-docker compose up --build        # http://localhost:3000
+docker compose up --build        # app on http://localhost:3000, API on http://localhost:8080
 ```
 
-This starts PostgreSQL, the backend in `DOCKER` sandbox mode (it drives the host's Docker
-daemon through `/var/run/docker.sock`) and the frontend behind nginx.
+This starts PostgreSQL, the backend and the frontend. The backend runs in `DOCKER` sandbox
+mode: it uses the host's Docker daemon (through `/var/run/docker.sock`) to start one
+throwaway, network-less container per run, and pulls the sandbox image on start-up.
+
+Both images work on their own too:
+
+| Image | Port | Settings |
+|---|---|---|
+| `backend/Dockerfile` | 8080 | `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD`, `ALGOCODE_SANDBOX_MODE`, `DOCKER_HOST`; health at `/actuator/health/{liveness,readiness}` |
+| `frontend/Dockerfile` | 8080 | `BACKEND_URL` (default `http://backend:8080`); nginx serves the app and proxies `/api`; health at `/healthz` |
+
+Both run as non-root users. Every push to `main` publishes multi-arch images to
+`ghcr.io/anzab-dev/algocode-backend` and `ghcr.io/anzab-dev/algocode-frontend`, tagged
+`latest` and `sha-<commit>` (`.github/workflows/images.yml`).
+
+## Deploy to Kubernetes
+
+```bash
+kubectl apply -k deploy/k8s
+kubectl -n algocode port-forward svc/frontend 8080:80    # or use the Ingress (host algocode.local)
+```
+
+`deploy/k8s` (Kustomize) creates the `algocode` namespace with:
+
+* **backend**: Deployment with startup, liveness and readiness probes, plus a **Docker-in-Docker
+  sidecar** that runs the sandbox containers. The backend reaches it on the pod's loopback
+  (`DOCKER_HOST=tcp://127.0.0.1:2375`). The sidecar has to be privileged; on clusters that forbid
+  that, schedule the backend on a node pool that allows it or use a rootless or Sysbox runtime.
+* **frontend**: two nginx replicas behind a Service, and an Ingress routing to them.
+* **postgres**: a single-instance StatefulSet with a 2 Gi volume. Change the password in
+  `postgres.yaml`, or point `ALGOCODE_DB_URL` at a managed database and drop the file.
+
+Before the first deploy: GHCR packages start out private, so either make both packages public
+in GitHub or add an `imagePullSecret`. To deploy a specific build, set `newTag: sha-<commit>` in
+`deploy/k8s/kustomization.yaml`. CI validates the rendered manifests with kubeconform.
 
 ## How judging works
 
@@ -142,7 +175,7 @@ code changes. To send events somewhere else entirely, provide another `AlgoTelem
 | `algocode.sandbox.max-heap-mb` | 256 | `-Xmx` of the judged JVM |
 | `algocode.sandbox.max-concurrent` | 4 | parallel runs; others queue |
 | `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD` | H2 file | JDBC settings |
-| `ALGOCODE_CORS_ORIGINS` | `http://localhost:5173` | allowed browser origins |
+| `ALGOCODE_CORS_ORIGINS` | `http://localhost:5173` | extra browser origins; not needed behind the frontend's proxy |
 
 ## Tests
 

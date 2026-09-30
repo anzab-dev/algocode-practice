@@ -1,0 +1,20 @@
+# Routes everything to the frontend, which serves the app and proxies /api to the backend.
+# Change the host (and add TLS) for your cluster; set ingressClassName if you have several.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: algocode
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+spec:
+  rules:
+    - host: algocode.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  name: http

@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: algocode-backend
+data:
+  ALGOCODE_DB_URL: jdbc:postgresql://postgres:5432/algocode
+  ALGOCODE_SANDBOX_MODE: DOCKER
+  ALGOCODE_SANDBOX_IMAGE: eclipse-temurin:21-jre-alpine
+  # The Docker-in-Docker sidecar below; it only listens on the pod's loopback interface.
+  DOCKER_HOST: tcp://127.0.0.1:2375
+  JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app.kubernetes.io/name: algocode-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: algocode-backend
+spec:
+  # One replica: the start-up problem seeding is not coordinated across instances yet.
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: algocode-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: algocode-backend
+        app.kubernetes.io/part-of: algocode
+    spec:
+      containers:
+        - name: backend
+          image: algocode-backend
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: algocode-backend
+          env:
+            - name: ALGOCODE_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: algocode-db
+                  key: POSTGRES_USER
+            - name: ALGOCODE_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: algocode-db
+                  key: POSTGRES_PASSWORD
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 5
+            failureThreshold: 36
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 768Mi
+            limits:
+              memory: 1536Mi
+        # Runs the per-submission sandbox containers (no network, read-only, capped CPU/memory).
+        # Docker-in-Docker needs a privileged container; if your cluster forbids that, run the
+        # backend on a node pool that allows it or swap in a rootless/sysbox runtime.
+        - name: sandbox-docker
+          image: docker:27-dind
+          args: ["--host=tcp://127.0.0.1:2375", "--host=unix:///var/run/docker.sock"]
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          securityContext:
+            privileged: true
+          readinessProbe:
+            exec:
+              command: ["docker", "info"]
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: docker-data
+              mountPath: /var/lib/docker
+      volumes:
+        - name: docker-data
+          emptyDir: {}

@@ -8,6 +8,16 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: algocode
+          POSTGRES_USER: algocode
+          POSTGRES_PASSWORD: algocode
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U algocode" --health-interval 5s --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -22,6 +32,11 @@ jobs:
         run: docker pull eclipse-temurin:21-jre-alpine
       - name: Build and test (includes Docker sandbox tests)
         run: mvn -B verify
+      - name: API tests against PostgreSQL
+        run: >
+          mvn -B -q surefire:test -Dtest=ApiIntegrationTest
+          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/algocode
+          -Dspring.datasource.username=algocode -Dspring.datasource.password=algocode
 
   frontend:
     runs-on: ubuntu-latest
@@ -46,3 +61,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the Docker Compose images
         run: docker compose build
+      - name: Validate the Kubernetes manifests
+        run: |
+          curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
+          kubectl kustomize deploy/k8s | ./kubeconform -strict -summary -
