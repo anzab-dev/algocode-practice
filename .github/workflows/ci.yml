@@ -12,12 +12,12 @@ jobs:
       postgres:
         image: postgres:17-alpine
         env:
-          POSTGRES_DB: algocode
-          POSTGRES_USER: algocode
-          POSTGRES_PASSWORD: algocode
+          POSTGRES_DB: algopractice
+          POSTGRES_USER: algopractice
+          POSTGRES_PASSWORD: algopractice
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U algocode" --health-interval 5s --health-retries 10
+          --health-cmd "pg_isready -U algopractice" --health-interval 5s --health-retries 10
     defaults:
       run:
         working-directory: backend
@@ -35,8 +35,8 @@ jobs:
       - name: API tests against PostgreSQL
         run: >
           mvn -B -q surefire:test -Dtest=ApiIntegrationTest
-          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/algocode
-          -Dspring.datasource.username=algocode -Dspring.datasource.password=algocode
+          -Dspring.datasource.url=jdbc:postgresql://localhost:5432/algopractice
+          -Dspring.datasource.username=algopractice -Dspring.datasource.password=algopractice
 
   frontend:
     runs-on: ubuntu-latest

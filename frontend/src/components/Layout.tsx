@@ -14,7 +14,7 @@ export function Layout() {
       <header className="topbar">
         <NavLink to="/" className="brand">
           <span className="brand-mark">{"{}"}</span>
-          algocode
+          AlgoPractice
         </NavLink>
         <nav className="nav">
           <NavLink to="/" end>

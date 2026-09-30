@@ -233,7 +233,7 @@ async function request<T>(method: string, path: string, body?: unknown, signal?:
     signal,
     headers: {
       "Content-Type": "application/json",
-      "X-Algocode-User": getHandle(),
+      "X-AlgoPractice-User": getHandle(),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
   });

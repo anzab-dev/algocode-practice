@@ -13,12 +13,12 @@ RUN mvn -B -q package -DskipTests
 # via DOCKER_HOST).
 FROM eclipse-temurin:21-jdk
 COPY --from=docker:27-cli /usr/local/bin/docker /usr/local/bin/docker
-RUN groupadd --system --gid 10001 algocode \
-    && useradd --system --uid 10001 --gid algocode --home-dir /app algocode \
-    && mkdir -p /app/data && chown -R algocode:algocode /app
+RUN groupadd --system --gid 10001 algopractice \
+    && useradd --system --uid 10001 --gid algopractice --home-dir /app algopractice \
+    && mkdir -p /app/data && chown -R algopractice:algopractice /app
 WORKDIR /app
-COPY --from=build /src/target/algocode-backend-*.jar app.jar
+COPY --from=build /src/target/algopractice-backend-*.jar app.jar
 USER 10001
 EXPOSE 8080
-ENV ALGOCODE_SANDBOX_MODE=DOCKER
+ENV ALGOPRACTICE_SANDBOX_MODE=DOCKER
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=60", "-jar", "/app/app.jar"]

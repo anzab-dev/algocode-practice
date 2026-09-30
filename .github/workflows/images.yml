@@ -28,7 +28,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/algocode-${{ matrix.component }}
+          images: ghcr.io/${{ github.repository_owner }}/algopractice-${{ matrix.component }}
           tags: |
             type=raw,value=latest
             type=sha,prefix=sha-

@@ -1,4 +1,4 @@
-const KEY = "algocode.handle";
+const KEY = "algopractice.handle";
 const listeners = new Set<() => void>();
 
 function randomHandle() {
@@ -52,18 +52,18 @@ export function isValidHandle(handle: string) {
 /** Per-browser storage helpers for drafts; failures are silently ignored. */
 export const drafts = {
   get(key: string): string | null {
-    return read(`algocode.draft.${key}`);
+    return read(`algopractice.draft.${key}`);
   },
   set(key: string, value: string) {
     try {
-      localStorage.setItem(`algocode.draft.${key}`, value);
+      localStorage.setItem(`algopractice.draft.${key}`, value);
     } catch {
       // ignore
     }
   },
   remove(key: string) {
     try {
-      localStorage.removeItem(`algocode.draft.${key}`);
+      localStorage.removeItem(`algopractice.draft.${key}`);
     } catch {
       // ignore
     }

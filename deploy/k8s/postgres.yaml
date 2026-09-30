@@ -1,13 +1,13 @@
-# A single-instance PostgreSQL for small deployments. Point ALGOCODE_DB_URL at a managed
+# A single-instance PostgreSQL for small deployments. Point ALGOPRACTICE_DB_URL at a managed
 # database instead and drop this file from kustomization.yaml for anything serious.
 apiVersion: v1
 kind: Secret
 metadata:
-  name: algocode-db
+  name: algopractice-db
 type: Opaque
 stringData:
-  POSTGRES_DB: algocode
-  POSTGRES_USER: algocode
+  POSTGRES_DB: algopractice
+  POSTGRES_USER: algopractice
   POSTGRES_PASSWORD: change-me
 ---
 apiVersion: v1
@@ -35,14 +35,14 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: postgres
-        app.kubernetes.io/part-of: algocode
+        app.kubernetes.io/part-of: algopractice
     spec:
       containers:
         - name: postgres
           image: postgres:17-alpine
           envFrom:
             - secretRef:
-                name: algocode-db
+                name: algopractice-db
           env:
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
@@ -50,7 +50,7 @@ spec:
             - containerPort: 5432
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "algocode"]
+              command: ["pg_isready", "-U", "algopractice"]
             periodSeconds: 5
           resources:
             requests:

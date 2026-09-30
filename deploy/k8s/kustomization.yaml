@@ -1,7 +1,7 @@
 # kubectl apply -k deploy/k8s
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namespace: algocode
+namespace: algopractice
 resources:
   - namespace.yaml
   - postgres.yaml
@@ -11,9 +11,9 @@ resources:
 images:
   # Published by .github/workflows/images.yml on every push to main.
   # Pin a commit tag (sha-<short sha>) instead of latest for reproducible deploys.
-  - name: algocode-backend
-    newName: ghcr.io/anzab-dev/algocode-backend
+  - name: algopractice-backend
+    newName: ghcr.io/anzab-dev/algopractice-backend
     newTag: latest
-  - name: algocode-frontend
-    newName: ghcr.io/anzab-dev/algocode-frontend
+  - name: algopractice-frontend
+    newName: ghcr.io/anzab-dev/algopractice-frontend
     newTag: latest

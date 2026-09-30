@@ -1,11 +1,11 @@
 spring:
   application:
-    name: algocode
+    name: algopractice
   datasource:
     # Defaults match the local Postgres from `docker compose up -d db` (see README).
-    url: ${ALGOCODE_DB_URL:jdbc:postgresql://localhost:5432/algocode}
-    username: ${ALGOCODE_DB_USER:algocode}
-    password: ${ALGOCODE_DB_PASSWORD:algocode}
+    url: ${ALGOPRACTICE_DB_URL:jdbc:postgresql://localhost:5432/algopractice}
+    username: ${ALGOPRACTICE_DB_USER:algopractice}
+    password: ${ALGOPRACTICE_DB_PASSWORD:algopractice}
   jpa:
     open-in-view: false
     hibernate:
@@ -17,15 +17,15 @@ spring:
 server:
   port: ${PORT:8080}
 
-algocode:
-  cors-origins: ${ALGOCODE_CORS_ORIGINS:http://localhost:5173}
+algopractice:
+  cors-origins: ${ALGOPRACTICE_CORS_ORIGINS:http://localhost:5173}
   scratch:
     time-limit-ms: 5000
   sandbox:
     # LOCAL runs code in a child JVM on this machine (development only).
     # DOCKER runs every job in a locked-down, network-less container.
-    mode: ${ALGOCODE_SANDBOX_MODE:LOCAL}
-    docker-image: ${ALGOCODE_SANDBOX_IMAGE:eclipse-temurin:21-jre-alpine}
+    mode: ${ALGOPRACTICE_SANDBOX_MODE:LOCAL}
+    docker-image: ${ALGOPRACTICE_SANDBOX_IMAGE:eclipse-temurin:21-jre-alpine}
     max-heap-mb: 256
     max-concurrent: 4
 

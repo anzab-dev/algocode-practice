@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { api, type Achievement, type Me } from "../api";
 import { onHandleChange } from "../user";
 
-const PROGRESS_EVENT = "algocode:progress";
-const ACHIEVEMENT_EVENT = "algocode:achievement";
+const PROGRESS_EVENT = "algopractice:progress";
+const ACHIEVEMENT_EVENT = "algopractice:achievement";
 
 /** Tells every progress widget (top bar, dashboard) to refetch, e.g. after a submission. */
 export function notifyProgressChanged() {

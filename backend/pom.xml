@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>dev.algocode</groupId>
-    <artifactId>algocode-backend</artifactId>
+    <groupId>dev.algopractice</groupId>
+    <artifactId>algopractice-backend</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <name>algocode-backend</name>
+    <name>algopractice-backend</name>
     <description>Coding practice sandbox: problems, sandboxed Java runner, language service</description>
 
     <properties>

@@ -4,25 +4,27 @@
 #   docker compose up -d db
 # User code runs in DOCKER sandbox mode: one throwaway, network-less container per run,
 # started through the host's Docker socket.
+name: algopractice
+
 services:
   db:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: algocode
-      POSTGRES_USER: algocode
-      POSTGRES_PASSWORD: algocode
+      POSTGRES_DB: algopractice
+      POSTGRES_USER: algopractice
+      POSTGRES_PASSWORD: algopractice
     ports:
-      - "${ALGOCODE_DB_PORT:-5432}:5432"
+      - "${ALGOPRACTICE_DB_PORT:-5432}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U algocode"]
+      test: ["CMD-SHELL", "pg_isready -U algopractice"]
       interval: 5s
       retries: 10
 
   backend:
     build: ./backend
-    image: algocode-backend:local
+    image: algopractice-backend:local
     # Root only to reach the host's Docker socket; in Kubernetes the backend runs as uid 10001
     # and talks to a Docker-in-Docker sidecar over localhost instead.
     user: "0"
@@ -30,10 +32,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      ALGOCODE_DB_URL: jdbc:postgresql://db:5432/algocode
-      ALGOCODE_DB_USER: algocode
-      ALGOCODE_DB_PASSWORD: algocode
-      ALGOCODE_SANDBOX_MODE: DOCKER
+      ALGOPRACTICE_DB_URL: jdbc:postgresql://db:5432/algopractice
+      ALGOPRACTICE_DB_USER: algopractice
+      ALGOPRACTICE_DB_PASSWORD: algopractice
+      ALGOPRACTICE_SANDBOX_MODE: DOCKER
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
@@ -41,7 +43,7 @@ services:
 
   frontend:
     build: ./frontend
-    image: algocode-frontend:local
+    image: algopractice-frontend:local
     depends_on:
       - backend
     environment:

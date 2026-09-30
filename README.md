@@ -1,4 +1,4 @@
-# algocode
+# AlgoPractice
 
 A LeetCode-style practice sandbox for Java with an IntelliJ-flavoured editor, a sandboxed
 judge that measures **runtime and memory**, a free-form **scratchpad**, and progress
@@ -16,7 +16,7 @@ mechanics (XP, levels, streaks, achievements, leaderboard) to keep practice enga
 
 Requirements: JDK 21, Maven 3.9, Node 22, Docker.
 
-**1. Start PostgreSQL** (database `algocode`, user `algocode`, password `algocode`, port 5432):
+**1. Start PostgreSQL** (database `algopractice`, user `algopractice`, password `algopractice`, port 5432):
 
 ```bash
 docker compose up -d db
@@ -25,13 +25,13 @@ docker compose up -d db
 Without Compose, the same container is:
 
 ```bash
-docker run -d --name algocode-db -p 5432:5432 \
-  -e POSTGRES_DB=algocode -e POSTGRES_USER=algocode -e POSTGRES_PASSWORD=algocode \
-  -v algocode-db:/var/lib/postgresql/data postgres:17-alpine
+docker run -d --name algopractice-db -p 5432:5432 \
+  -e POSTGRES_DB=algopractice -e POSTGRES_USER=algopractice -e POSTGRES_PASSWORD=algopractice \
+  -v algopractice-db:/var/lib/postgresql/data postgres:17-alpine
 ```
 
-Port 5432 already taken? Use `ALGOCODE_DB_PORT=5433 docker compose up -d db` and
-`ALGOCODE_DB_URL=jdbc:postgresql://localhost:5433/algocode` for the backend.
+Port 5432 already taken? Use `ALGOPRACTICE_DB_PORT=5433 docker compose up -d db` and
+`ALGOPRACTICE_DB_URL=jdbc:postgresql://localhost:5433/algopractice` for the backend.
 Flyway creates the schema and the problems are seeded on the backend's first start.
 
 **2. Run the backend** on :8080 (`LOCAL` sandbox):
@@ -47,12 +47,12 @@ cd frontend && npm install && npm run dev
 ```
 
 Open http://localhost:5173. There are no accounts yet: the browser picks a handle
-(changeable on the Progress page) and sends it in the `X-Algocode-User` header.
+(changeable on the Progress page) and sends it in the `X-AlgoPractice-User` header.
 
 Database chores:
 
 ```bash
-docker compose exec db psql -U algocode algocode    # SQL shell
+docker compose exec db psql -U algopractice algopractice    # SQL shell
 docker compose stop db                              # stop, keep data
 docker compose down -v                              # remove container and data
 ```
@@ -74,11 +74,11 @@ Both images work on their own too:
 
 | Image | Port | Settings |
 |---|---|---|
-| `backend/Dockerfile` | 8080 | `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD`, `ALGOCODE_SANDBOX_MODE`, `DOCKER_HOST`; health at `/actuator/health/{liveness,readiness}` |
+| `backend/Dockerfile` | 8080 | `ALGOPRACTICE_DB_URL` / `_USER` / `_PASSWORD`, `ALGOPRACTICE_SANDBOX_MODE`, `DOCKER_HOST`; health at `/actuator/health/{liveness,readiness}` |
 | `frontend/Dockerfile` | 8080 | `BACKEND_URL` (default `http://backend:8080`); nginx serves the app and proxies `/api`; health at `/healthz` |
 
 Both run as non-root users. Every push to `main` publishes multi-arch images to
-`ghcr.io/anzab-dev/algocode-backend` and `ghcr.io/anzab-dev/algocode-frontend`, tagged
+`ghcr.io/anzab-dev/algopractice-backend` and `ghcr.io/anzab-dev/algopractice-frontend`, tagged
 `latest` and `sha-<commit>` (`.github/workflows/images.yml`).
 
 ## Deploy to Kubernetes
@@ -88,29 +88,29 @@ Needs `kubectl` pointed at your cluster, and nodes that allow privileged pods (s
 **Deploy**
 
 1. Let the cluster pull the images. GHCR packages start out private: either make
-   `algocode-backend` and `algocode-frontend` public (GitHub → Packages → Settings), or:
+   `algopractice-backend` and `algopractice-frontend` public (GitHub → Packages → Settings), or:
    ```bash
    kubectl apply -f deploy/k8s/namespace.yaml
-   kubectl -n algocode create secret docker-registry ghcr --docker-server=ghcr.io \
+   kubectl -n algopractice create secret docker-registry ghcr --docker-server=ghcr.io \
      --docker-username=<github user> --docker-password=<token with read:packages>
-   kubectl -n algocode patch serviceaccount default -p '{"imagePullSecrets":[{"name":"ghcr"}]}'
+   kubectl -n algopractice patch serviceaccount default -p '{"imagePullSecrets":[{"name":"ghcr"}]}'
    ```
 2. Set a real database password in `deploy/k8s/postgres.yaml` (`POSTGRES_PASSWORD`).
 3. Optional: pin a build with `newTag: sha-<commit>` in `deploy/k8s/kustomization.yaml`.
 4. Apply and wait:
    ```bash
    kubectl apply -k deploy/k8s
-   kubectl -n algocode rollout status statefulset/postgres
-   kubectl -n algocode rollout status deployment/backend --timeout=5m
-   kubectl -n algocode rollout status deployment/frontend
+   kubectl -n algopractice rollout status statefulset/postgres
+   kubectl -n algopractice rollout status deployment/backend --timeout=5m
+   kubectl -n algopractice rollout status deployment/frontend
    ```
 5. Open it:
    ```bash
-   kubectl -n algocode port-forward svc/frontend 8080:80    # http://localhost:8080
+   kubectl -n algopractice port-forward svc/frontend 8080:80    # http://localhost:8080
    ```
-   With an ingress controller, point `algocode.local` (or your host in `ingress.yaml`) at it instead.
+   With an ingress controller, point `algopractice.local` (or your host in `ingress.yaml`) at it instead.
 
-**Update** to a new build: `kubectl -n algocode rollout restart deployment/backend deployment/frontend`
+**Update** to a new build: `kubectl -n algopractice rollout restart deployment/backend deployment/frontend`
 (on `latest`), or change `newTag` and run `kubectl apply -k deploy/k8s` again.
 
 **Undeploy**
@@ -120,9 +120,9 @@ kubectl delete -k deploy/k8s    # removes the namespace and everything in it, da
 ```
 
 To stop the app but keep the data, scale it down instead:
-`kubectl -n algocode scale deployment,statefulset --all --replicas=0`.
+`kubectl -n algopractice scale deployment,statefulset --all --replicas=0`.
 
-**What gets created** (namespace `algocode`):
+**What gets created** (namespace `algopractice`):
 
 * **backend**: Deployment with startup, liveness and readiness probes, plus a **Docker-in-Docker
   sidecar** that runs the sandbox containers. The backend reaches it on the pod's loopback
@@ -130,7 +130,7 @@ To stop the app but keep the data, scale it down instead:
   that, schedule the backend on a node pool that allows it or use a rootless or Sysbox runtime.
 * **frontend**: two nginx replicas behind a Service, and an Ingress routing to them.
 * **postgres**: a single-instance StatefulSet with a 2 Gi volume. To use a managed database
-  instead, set `ALGOCODE_DB_URL` in the backend ConfigMap and drop `postgres.yaml`.
+  instead, set `ALGOPRACTICE_DB_URL` in the backend ConfigMap and drop `postgres.yaml`.
 
 CI validates the rendered manifests with kubeconform.
 
@@ -140,7 +140,7 @@ CI validates the rendered manifests with kubeconform.
  browser ──POST /api/problems/{slug}/submit──▶ JudgeService
                                                │
                      JavaSourceCompiler (javac, in memory, no annotation processing)
-                                               │ class files + algocode.harness.* + job.json
+                                               │ class files + algopractice.harness.* + job.json
                                                ▼
                          SandboxExecutor ── LOCAL: child JVM
                                          └─ DOCKER: docker run --network none --read-only
@@ -150,7 +150,7 @@ CI validates the rendered manifests with kubeconform.
                      OutputComparator (EXACT / UNORDERED / UNORDERED_DEEP / FLOAT) ─▶ verdict
 ```
 
-* The **harness** (`backend/src/main/java/algocode/harness`) depends on `java.base` only. It
+* The **harness** (`backend/src/main/java/algopractice/harness`) depends on `java.base` only. It
   converts JSON arguments to the method's declared types (arrays, `List<List<Integer>>`,
   `char[][]`, maps, …), runs each test on a thread with a 256 MB stack, captures `System.out`,
   and reports the return value (or the mutated first argument for `void` in-place methods).
@@ -205,11 +205,11 @@ On start-up `ProblemSeeder` upserts problems whose files changed (matched by slu
 
 ## Telemetry
 
-Application code reports domain events through `dev.algocode.telemetry.AlgoTelemetry`
+Application code reports domain events through `dev.algopractice.telemetry.AlgoTelemetry`
 (`executionFinished`, `submissionJudged`, `languageRequest`, and `observe(...)` for spans).
 The default `MicrometerTelemetry` turns them into Micrometer meters and observations, visible at
-`/actuator/metrics` (e.g. `algocode.submissions`, `algocode.execution.wall`,
-`algocode.submission.runtime`, `algocode.language`).
+`/actuator/metrics` (e.g. `algopractice.submissions`, `algopractice.execution.wall`,
+`algopractice.submission.runtime`, `algopractice.language`).
 
 To ship them to an OpenTelemetry collector later, add `spring-boot-starter-opentelemetry` to
 `backend/pom.xml` and set `management.otlp.metrics.export.url` /
@@ -232,12 +232,12 @@ code changes. To send events somewhere else entirely, provide another `AlgoTelem
 
 | Property / env | Default | |
 |---|---|---|
-| `ALGOCODE_SANDBOX_MODE` | `LOCAL` | `LOCAL` or `DOCKER` |
-| `ALGOCODE_SANDBOX_IMAGE` | `eclipse-temurin:21-jre-alpine` | image for DOCKER mode |
-| `algocode.sandbox.max-heap-mb` | 256 | `-Xmx` of the judged JVM |
-| `algocode.sandbox.max-concurrent` | 4 | parallel runs; others queue |
-| `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD` | `jdbc:postgresql://localhost:5432/algocode`, `algocode` / `algocode` | JDBC settings |
-| `ALGOCODE_CORS_ORIGINS` | `http://localhost:5173` | extra browser origins; not needed behind the frontend's proxy |
+| `ALGOPRACTICE_SANDBOX_MODE` | `LOCAL` | `LOCAL` or `DOCKER` |
+| `ALGOPRACTICE_SANDBOX_IMAGE` | `eclipse-temurin:21-jre-alpine` | image for DOCKER mode |
+| `algopractice.sandbox.max-heap-mb` | 256 | `-Xmx` of the judged JVM |
+| `algopractice.sandbox.max-concurrent` | 4 | parallel runs; others queue |
+| `ALGOPRACTICE_DB_URL` / `_USER` / `_PASSWORD` | `jdbc:postgresql://localhost:5432/algopractice`, `algopractice` / `algopractice` | JDBC settings |
+| `ALGOPRACTICE_CORS_ORIGINS` | `http://localhost:5173` | extra browser origins; not needed behind the frontend's proxy |
 
 ## Tests
 

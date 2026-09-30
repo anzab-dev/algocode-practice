@@ -3,12 +3,12 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: algocode
+  name: algopractice
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
 spec:
   rules:
-    - host: algocode.local
+    - host: algopractice.local
       http:
         paths:
           - path: /
