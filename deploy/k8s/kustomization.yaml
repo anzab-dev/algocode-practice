@@ -12,8 +12,8 @@ images:
   # Published by .github/workflows/images.yml on every push to main.
   # Pin a commit tag (sha-<short sha>) instead of latest for reproducible deploys.
   - name: algopractice-backend
-    newName: ghcr.io/anzab-dev/algopractice-backend
-    newTag: latest
+    newName: algopractice-backend
+    newTag: dev
   - name: algopractice-frontend
-    newName: ghcr.io/anzab-dev/algopractice-frontend
-    newTag: latest
+    newName: algopractice-frontend
+    newTag: dev
