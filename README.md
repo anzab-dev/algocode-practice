@@ -6,26 +6,56 @@ mechanics (XP, levels, streaks, achievements, leaderboard) to keep practice enga
 
 | | |
 |---|---|
-| Backend | Java 21, Spring Boot 4.1, Spring Data JPA, Flyway, H2 (dev) / PostgreSQL |
+| Backend | Java 21, Spring Boot 4.1, Spring Data JPA, Flyway, PostgreSQL |
 | Frontend | React 19, TypeScript, Vite, Monaco editor |
 | Judge | javac in-process + a harness JVM per run, either a local child process or a locked-down Docker container |
 | Editor intelligence | javac-backed diagnostics, completion (with auto-import), hover and parameter info |
 | Telemetry | one `AlgoTelemetry` interface, implemented with Micrometer (OpenTelemetry-ready) |
 
-## Quick start (development)
+## Local development
 
-Requirements: JDK 21, Maven 3.9, Node 22.
+Requirements: JDK 21, Maven 3.9, Node 22, Docker.
+
+**1. Start PostgreSQL** (database `algocode`, user `algocode`, password `algocode`, port 5432):
 
 ```bash
-# terminal 1: backend on :8080 (H2 file database in backend/data, LOCAL sandbox)
-cd backend && mvn spring-boot:run
+docker compose up -d db
+```
 
-# terminal 2: frontend on :5173, proxies /api to :8080
+Without Compose, the same container is:
+
+```bash
+docker run -d --name algocode-db -p 5432:5432 \
+  -e POSTGRES_DB=algocode -e POSTGRES_USER=algocode -e POSTGRES_PASSWORD=algocode \
+  -v algocode-db:/var/lib/postgresql/data postgres:17-alpine
+```
+
+Port 5432 already taken? Use `ALGOCODE_DB_PORT=5433 docker compose up -d db` and
+`ALGOCODE_DB_URL=jdbc:postgresql://localhost:5433/algocode` for the backend.
+Flyway creates the schema and the problems are seeded on the backend's first start.
+
+**2. Run the backend** on :8080 (`LOCAL` sandbox):
+
+```bash
+cd backend && mvn spring-boot:run
+```
+
+**3. Run the frontend** on :5173 (proxies `/api` to :8080):
+
+```bash
 cd frontend && npm install && npm run dev
 ```
 
 Open http://localhost:5173. There are no accounts yet: the browser picks a handle
 (changeable on the Progress page) and sends it in the `X-Algocode-User` header.
+
+Database chores:
+
+```bash
+docker compose exec db psql -U algocode algocode    # SQL shell
+docker compose stop db                              # stop, keep data
+docker compose down -v                              # remove container and data
+```
 
 > `LOCAL` sandbox mode runs submissions in a child JVM on your machine with only a heap cap
 > and a kill timer. It is for development. Use `DOCKER` mode anywhere other people can submit code.
@@ -53,24 +83,56 @@ Both run as non-root users. Every push to `main` publishes multi-arch images to
 
 ## Deploy to Kubernetes
 
+Needs `kubectl` pointed at your cluster, and nodes that allow privileged pods (see below).
+
+**Deploy**
+
+1. Let the cluster pull the images. GHCR packages start out private: either make
+   `algocode-backend` and `algocode-frontend` public (GitHub → Packages → Settings), or:
+   ```bash
+   kubectl apply -f deploy/k8s/namespace.yaml
+   kubectl -n algocode create secret docker-registry ghcr --docker-server=ghcr.io \
+     --docker-username=<github user> --docker-password=<token with read:packages>
+   kubectl -n algocode patch serviceaccount default -p '{"imagePullSecrets":[{"name":"ghcr"}]}'
+   ```
+2. Set a real database password in `deploy/k8s/postgres.yaml` (`POSTGRES_PASSWORD`).
+3. Optional: pin a build with `newTag: sha-<commit>` in `deploy/k8s/kustomization.yaml`.
+4. Apply and wait:
+   ```bash
+   kubectl apply -k deploy/k8s
+   kubectl -n algocode rollout status statefulset/postgres
+   kubectl -n algocode rollout status deployment/backend --timeout=5m
+   kubectl -n algocode rollout status deployment/frontend
+   ```
+5. Open it:
+   ```bash
+   kubectl -n algocode port-forward svc/frontend 8080:80    # http://localhost:8080
+   ```
+   With an ingress controller, point `algocode.local` (or your host in `ingress.yaml`) at it instead.
+
+**Update** to a new build: `kubectl -n algocode rollout restart deployment/backend deployment/frontend`
+(on `latest`), or change `newTag` and run `kubectl apply -k deploy/k8s` again.
+
+**Undeploy**
+
 ```bash
-kubectl apply -k deploy/k8s
-kubectl -n algocode port-forward svc/frontend 8080:80    # or use the Ingress (host algocode.local)
+kubectl delete -k deploy/k8s    # removes the namespace and everything in it, database volume included
 ```
 
-`deploy/k8s` (Kustomize) creates the `algocode` namespace with:
+To stop the app but keep the data, scale it down instead:
+`kubectl -n algocode scale deployment,statefulset --all --replicas=0`.
+
+**What gets created** (namespace `algocode`):
 
 * **backend**: Deployment with startup, liveness and readiness probes, plus a **Docker-in-Docker
   sidecar** that runs the sandbox containers. The backend reaches it on the pod's loopback
   (`DOCKER_HOST=tcp://127.0.0.1:2375`). The sidecar has to be privileged; on clusters that forbid
   that, schedule the backend on a node pool that allows it or use a rootless or Sysbox runtime.
 * **frontend**: two nginx replicas behind a Service, and an Ingress routing to them.
-* **postgres**: a single-instance StatefulSet with a 2 Gi volume. Change the password in
-  `postgres.yaml`, or point `ALGOCODE_DB_URL` at a managed database and drop the file.
+* **postgres**: a single-instance StatefulSet with a 2 Gi volume. To use a managed database
+  instead, set `ALGOCODE_DB_URL` in the backend ConfigMap and drop `postgres.yaml`.
 
-Before the first deploy: GHCR packages start out private, so either make both packages public
-in GitHub or add an `imagePullSecret`. To deploy a specific build, set `newTag: sha-<commit>` in
-`deploy/k8s/kustomization.yaml`. CI validates the rendered manifests with kubeconform.
+CI validates the rendered manifests with kubeconform.
 
 ## How judging works
 
@@ -174,12 +236,12 @@ code changes. To send events somewhere else entirely, provide another `AlgoTelem
 | `ALGOCODE_SANDBOX_IMAGE` | `eclipse-temurin:21-jre-alpine` | image for DOCKER mode |
 | `algocode.sandbox.max-heap-mb` | 256 | `-Xmx` of the judged JVM |
 | `algocode.sandbox.max-concurrent` | 4 | parallel runs; others queue |
-| `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD` | H2 file | JDBC settings |
+| `ALGOCODE_DB_URL` / `_USER` / `_PASSWORD` | `jdbc:postgresql://localhost:5432/algocode`, `algocode` / `algocode` | JDBC settings |
 | `ALGOCODE_CORS_ORIGINS` | `http://localhost:5173` | extra browser origins; not needed behind the frontend's proxy |
 
 ## Tests
 
 ```bash
-cd backend && mvn verify      # harness, judge, language service, API, catalog integrity, Docker sandbox (if Docker is available)
+cd backend && mvn verify      # uses in-memory H2, no Postgres needed; harness, judge, language service, API, catalog integrity, Docker sandbox (if Docker is available)
 cd frontend && npm test && npm run build
 ```

@@ -2,9 +2,10 @@ spring:
   application:
     name: algocode
   datasource:
-    url: ${ALGOCODE_DB_URL:jdbc:h2:file:./data/algocode;AUTO_SERVER=TRUE}
-    username: ${ALGOCODE_DB_USER:sa}
-    password: ${ALGOCODE_DB_PASSWORD:}
+    # Defaults match the local Postgres from `docker compose up -d db` (see README).
+    url: ${ALGOCODE_DB_URL:jdbc:postgresql://localhost:5432/algocode}
+    username: ${ALGOCODE_DB_USER:algocode}
+    password: ${ALGOCODE_DB_PASSWORD:algocode}
   jpa:
     open-in-view: false
     hibernate:

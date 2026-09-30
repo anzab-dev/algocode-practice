@@ -1,5 +1,7 @@
 # Full stack on one machine: PostgreSQL, the backend and the frontend (http://localhost:3000).
 #   docker compose up --build
+# Only the database, for running the backend from your IDE or `mvn spring-boot:run`:
+#   docker compose up -d db
 # User code runs in DOCKER sandbox mode: one throwaway, network-less container per run,
 # started through the host's Docker socket.
 services:
@@ -9,6 +11,8 @@ services:
       POSTGRES_DB: algocode
       POSTGRES_USER: algocode
       POSTGRES_PASSWORD: algocode
+    ports:
+      - "${ALGOCODE_DB_PORT:-5432}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
