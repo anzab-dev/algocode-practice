@@ -1,0 +1,23 @@
+title: Shift Right
+difficulty: MEDIUM
+order: 10
+tags: [array, two-pointers, in-place]
+method: shiftRight
+formerSlugs: [rotate-array]
+params:
+  - name: nums
+    type: "int[]"
+  - name: k
+    type: "int"
+returnType: "void"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "k can be larger than the array length."
+  - "Reversing the whole array and then each of its two parts shifts it in place."
+starterCode: |
+  class Solution {
+      public void shiftRight(int[] nums, int k) {
+          
+      }
+  }

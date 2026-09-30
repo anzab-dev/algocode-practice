@@ -1,6 +1,6 @@
 # AlgoPractice
 
-A LeetCode-style practice sandbox for Java with an IntelliJ-flavoured editor, a sandboxed
+A self-hosted coding-practice sandbox for Java with an IntelliJ-flavoured editor, a sandboxed
 judge that measures **runtime and memory**, a free-form **scratchpad**, and progress
 mechanics (XP, levels, streaks, achievements, leaderboard) to keep practice engaging.
 
@@ -200,8 +200,13 @@ Each problem is a folder under `backend/src/main/resources/problems/<slug>/`:
 | `tests.json` | `[{"args": [...], "expected": ..., "sample": true}]` — samples are shown and used by Run |
 
 On start-up `ProblemSeeder` upserts problems whose files changed (matched by slug, by content hash).
+To rename a problem, rename its folder and list the old folder name under `formerSlugs` in
+`problem.yaml`; the existing row, and the submissions pointing at it, move to the new slug.
 `scripts/generate_problem_tests.py` regenerates the large randomized tests, and
 `ProblemCatalogIntegrityTest` runs every reference solution against every test in CI.
+
+Write the statement, title and examples in your own words. Problem statements are licensed
+CC BY-SA 4.0 (see [License](#license)), so text copied from another site cannot go in.
 
 ## Telemetry
 
@@ -245,3 +250,16 @@ code changes. To send events somewhere else entirely, provide another `AlgoTelem
 cd backend && mvn verify      # uses in-memory H2, no Postgres needed; harness, judge, language service, API, catalog integrity, Docker sandbox (if Docker is available)
 cd frontend && npm test && npm run build
 ```
+
+## License
+
+* **Code** (backend, frontend, deployment files, reference solutions, starter code, test data):
+  [MIT](LICENSE).
+* **Problem statements** (`description.md`, and the titles and hints in `problem.yaml`):
+  [CC BY-SA 4.0](LICENSES/CC-BY-SA-4.0.txt), see
+  [`backend/src/main/resources/problems/LICENSE.md`](backend/src/main/resources/problems/LICENSE.md).
+
+AlgoPractice is an independent project. It is not affiliated with, endorsed by or sponsored by
+LeetCode or any other coding-practice site, and any product names mentioned belong to their
+owners. The bundled problems are well-known algorithm exercises, written up in original wording
+with original examples.

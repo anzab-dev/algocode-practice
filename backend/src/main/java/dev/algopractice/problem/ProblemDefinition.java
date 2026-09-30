@@ -7,6 +7,7 @@ import tools.jackson.databind.JsonNode;
  * A problem as authored on disk under {@code resources/problems/<slug>/}:
  * {@code problem.yaml} (metadata and starter code), {@code description.md},
  * {@code tests.json} and {@code Solution.java} (the reference solution).
+ * {@code formerSlugs} lists the directory names a problem had before it was renamed.
  */
 public record ProblemDefinition(
         String slug,
@@ -21,6 +22,7 @@ public record ProblemDefinition(
             Difficulty difficulty,
             List<String> tags,
             String method,
+            List<String> formerSlugs,
             List<Param> params,
             String returnType,
             CompareMode compare,

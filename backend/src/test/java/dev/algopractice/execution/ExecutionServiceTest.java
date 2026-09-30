@@ -22,7 +22,7 @@ class ExecutionServiceTest {
                 import java.util.*;
 
                 class Solution {
-                    public int[] twoSum(int[] nums, int target) {
+                    public int[] findPair(int[] nums, int target) {
                         System.out.println("looking for " + target);
                         Map<Integer, Integer> seen = new HashMap<>();
                         for (int i = 0; i < nums.length; i++) {
@@ -33,7 +33,7 @@ class ExecutionServiceTest {
                     }
                 }
                 """;
-        SolveReport report = execution.solve(code, "Solution", "twoSum",
+        SolveReport report = execution.solve(code, "Solution", "findPair",
                 args("[[2,7,11,15],9]", "[[3,2,4],6]"), 2000, true);
 
         assertThat(report.status()).isEqualTo(RunStatus.COMPLETED);

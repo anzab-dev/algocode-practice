@@ -1,0 +1,21 @@
+title: Staircase Paths
+difficulty: EASY
+order: 4
+tags: [dynamic-programming, math]
+method: countWays
+formerSlugs: [climbing-stairs]
+params:
+  - name: n
+    type: "int"
+returnType: "int"
+compare: EXACT
+timeLimitMs: 1000
+hints:
+  - "How many ways are there to reach step n if the last move was 1 step? And if it was 2?"
+  - "Plain recursion recomputes the same values exponentially often. Memoize or iterate."
+starterCode: |
+  class Solution {
+      public int countWays(int n) {
+          
+      }
+  }

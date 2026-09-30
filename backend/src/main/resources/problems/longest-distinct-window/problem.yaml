@@ -1,0 +1,21 @@
+title: Longest Distinct Window
+difficulty: MEDIUM
+order: 6
+tags: [string, sliding-window, hash-table]
+method: longestDistinct
+formerSlugs: [longest-substring-without-repeating-characters]
+params:
+  - name: s
+    type: "String"
+returnType: "int"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "Keep a window with no repeated characters and slide its left edge only when needed."
+  - "Remembering the last index of each character lets the left edge jump instead of crawl."
+starterCode: |
+  class Solution {
+      public int longestDistinct(String s) {
+          
+      }
+  }

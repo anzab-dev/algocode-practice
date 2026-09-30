@@ -141,9 +141,9 @@ def rotate(nums, k):
 
 def gen_two_sum():
     cases = [
-        case([[2, 7, 11, 15], 9], [0, 1], True),
-        case([[3, 2, 4], 6], [1, 2], True),
-        case([[3, 3], 6], [0, 1], True),
+        case([[5, 8, -2, 11], 9], two_sum([5, 8, -2, 11], 9), True),
+        case([[6, 1, 6], 12], two_sum([6, 1, 6], 12), True),
+        case([[10, -3, 7, 25], 17], two_sum([10, -3, 7, 25], 17), True),
         case([[-4, 10, 5, -1], 1], two_sum([-4, 10, 5, -1], 1)),
         case([[0, 4, 3, 0], 0], two_sum([0, 4, 3, 0], 0)),
     ]
@@ -158,8 +158,8 @@ def gen_two_sum():
 
 
 def gen_valid_parentheses():
-    samples = [("()", True), ("()[]{}", True), ("(]", False), ("([)]", False), ("{[]}", True)]
-    cases = [case([s], v, i < 3) for i, (s, v) in enumerate(samples)]
+    samples = ["[()]{}", "{(})", "((", "[{}()]", "}{"]
+    cases = [case([s], is_valid(s), i < 3) for i, s in enumerate(samples)]
     cases += [case(["("], False), case(["]"], False), case(["(((((())))))"], True)]
 
     def balanced(n):
@@ -186,8 +186,8 @@ def gen_valid_parentheses():
 
 def gen_stock():
     cases = [
-        case([[7, 1, 5, 3, 6, 4]], 5, True),
-        case([[7, 6, 4, 3, 1]], 0, True),
+        case([[9, 4, 6, 2, 8, 5]], max_profit([9, 4, 6, 2, 8, 5]), True),
+        case([[10, 8, 8, 3]], 0, True),
         case([[1]], 0),
         case([[2, 4, 1]], 2),
         case([[3, 2, 6, 5, 0, 3]], 4),
@@ -199,15 +199,15 @@ def gen_stock():
 
 
 def gen_climb():
-    return [case([n], climb(n), n in (2, 3)) for n in (2, 3, 1, 5, 10, 20, 30, 38, 45)]
+    return [case([n], climb(n), n in (1, 4)) for n in (1, 4, 2, 3, 5, 10, 20, 30, 38, 45)]
 
 
 def gen_max_subarray():
     cases = [
-        case([[-2, 1, -3, 4, -1, 2, 1, -5, 4]], 6, True),
-        case([[1]], 1, True),
-        case([[5, 4, -1, 7, 8]], 23, True),
-        case([[-3, -2, -5]], -2),
+        case([[3, -4, 5, -1, 2, -6, 1]], max_sub([3, -4, 5, -1, 2, -6, 1]), True),
+        case([[-7, -2, -9]], -2, True),
+        case([[8]], 8, True),
+        case([[1, 2, -10, 4]], 4),
     ]
     for n in (10_000, 100_000):
         nums = [rng.randint(-10_000, 10_000) for _ in range(n)]
@@ -216,9 +216,9 @@ def gen_max_subarray():
 
 
 def gen_longest_substring():
-    samples = ["abcabcbb", "bbbbb", "pwwkew"]
+    samples = ["abcdeafg", "zzzz", "hello world"]
     cases = [case([s], longest_unique(s), True) for s in samples]
-    for s in ["", " ", "dvdf", "abba", "tmmzuxt"]:
+    for s in ["", " ", "xyx", "abba", "qrsqtuv"]:
         cases.append(case([s], longest_unique(s)))
     alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 !?"
     for n in (5_000, 50_000):
@@ -229,7 +229,8 @@ def gen_longest_substring():
 
 def gen_group_anagrams():
     cases = [
-        case([["eat", "tea", "tan", "ate", "nat", "bat"]], [["bat"], ["nat", "tan"], ["ate", "eat", "tea"]], True),
+        case([["listen", "stone", "silent", "notes", "enlist", "cat"]],
+             group_anagrams(["listen", "stone", "silent", "notes", "enlist", "cat"]), True),
         case([[""]], [[""]], True),
         case([["a"]], [["a"]], True),
         case([["abc", "bca", "cab", "xyz", "zyx", "q"]], group_anagrams(["abc", "bca", "cab", "xyz", "zyx", "q"])),
@@ -247,8 +248,8 @@ def gen_group_anagrams():
 
 def gen_merge_intervals():
     cases = [
-        case([[[1, 3], [2, 6], [8, 10], [15, 18]]], [[1, 6], [8, 10], [15, 18]], True),
-        case([[[1, 4], [4, 5]]], [[1, 5]], True),
+        case([[[5, 9], [1, 2], [8, 12], [2, 3]]], merge([[5, 9], [1, 2], [8, 12], [2, 3]]), True),
+        case([[[0, 0], [1, 1]]], [[0, 0], [1, 1]], True),
         case([[[1, 4], [0, 4]]], [[0, 4]]),
         case([[[1, 4], [2, 3]]], [[1, 4]]),
         case([[[5, 7]]], [[5, 7]]),
@@ -264,8 +265,8 @@ def gen_merge_intervals():
 
 def gen_product():
     cases = [
-        case([[1, 2, 3, 4]], [24, 12, 8, 6], True),
-        case([[-1, 1, 0, -3, 3]], [0, 0, 9, 0, 0], True),
+        case([[2, 5, 3]], [15, 6, 10], True),
+        case([[4, 0, -2, 1]], [0, -8, 0, 0], True),
         case([[2, 3]], [3, 2]),
         case([[0, 0, 5]], [0, 0, 0]),
     ]
@@ -277,8 +278,8 @@ def gen_product():
 
 def gen_trap():
     cases = [
-        case([[0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]], 6, True),
-        case([[4, 2, 0, 3, 2, 5]], 9, True),
+        case([[3, 0, 1, 0, 4]], 8, True),
+        case([[2, 1, 3, 0, 1, 2]], trap([2, 1, 3, 0, 1, 2]), True),
         case([[1]], 0),
         case([[5, 4, 3, 2, 1]], 0),
         case([[2, 0, 2]], 2),
@@ -291,8 +292,8 @@ def gen_trap():
 
 def gen_median():
     cases = [
-        case([[1, 3], [2]], 2.0, True),
-        case([[1, 2], [3, 4]], 2.5, True),
+        case([[1, 4, 9], [2, 3]], 3.0, True),
+        case([[-5, 0], [5, 10]], 2.5, True),
         case([[], [1]], 1.0),
         case([[2], []], 2.0),
         case([[0, 0], [0, 0]], 0.0),
@@ -306,8 +307,8 @@ def gen_median():
 
 def gen_rotate():
     cases = [
-        case([[1, 2, 3, 4, 5, 6, 7], 3], [5, 6, 7, 1, 2, 3, 4], True),
-        case([[-1, -100, 3, 99], 2], [3, 99, -1, -100], True),
+        case([[10, 20, 30, 40, 50], 2], [40, 50, 10, 20, 30], True),
+        case([[7, -8, 9], 4], [9, 7, -8], True),
         case([[1], 5], [1]),
         case([[1, 2], 3], [2, 1]),
         case([[1, 2, 3], 0], [1, 2, 3]),
@@ -320,18 +321,18 @@ def gen_rotate():
 
 
 GENERATORS = {
-    "two-sum": gen_two_sum,
-    "valid-parentheses": gen_valid_parentheses,
-    "best-time-to-buy-and-sell-stock": gen_stock,
-    "climbing-stairs": gen_climb,
-    "maximum-subarray": gen_max_subarray,
-    "longest-substring-without-repeating-characters": gen_longest_substring,
-    "group-anagrams": gen_group_anagrams,
-    "merge-intervals": gen_merge_intervals,
-    "product-of-array-except-self": gen_product,
-    "rotate-array": gen_rotate,
-    "trapping-rain-water": gen_trap,
-    "median-of-two-sorted-arrays": gen_median,
+    "pair-with-target-sum": gen_two_sum,
+    "balanced-brackets": gen_valid_parentheses,
+    "single-trade-profit": gen_stock,
+    "staircase-paths": gen_climb,
+    "best-contiguous-sum": gen_max_subarray,
+    "longest-distinct-window": gen_longest_substring,
+    "anagram-buckets": gen_group_anagrams,
+    "merge-ranges": gen_merge_intervals,
+    "products-of-others": gen_product,
+    "shift-right": gen_rotate,
+    "rainwater-between-walls": gen_trap,
+    "combined-median": gen_median,
 }
 
 if __name__ == "__main__":

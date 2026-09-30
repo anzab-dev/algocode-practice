@@ -48,14 +48,14 @@ class ApiIntegrationTest {
         mvc.perform(as("lister", get("/api/problems")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize((int) problems.count())))
-                .andExpect(jsonPath("$[0].slug").value("two-sum"))
+                .andExpect(jsonPath("$[0].slug").value("pair-with-target-sum"))
                 .andExpect(jsonPath("$[0].difficulty").value("EASY"));
-        mvc.perform(get("/api/problems/two-sum"))
+        mvc.perform(get("/api/problems/pair-with-target-sum"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.method").value("twoSum"))
+                .andExpect(jsonPath("$.method").value("findPair"))
                 .andExpect(jsonPath("$.samples", hasSize(3)))
                 .andExpect(jsonPath("$.params[0].name").value("nums"))
-                .andExpect(jsonPath("$.nextSlug").value("valid-parentheses"));
+                .andExpect(jsonPath("$.nextSlug").value("balanced-brackets"));
         mvc.perform(get("/api/problems/nope")).andExpect(status().isNotFound());
     }
 
@@ -63,12 +63,12 @@ class ApiIntegrationTest {
     void runShowsSampleAndCustomResultsWithReferenceExpectations() throws Exception {
         String wrong = """
                 class Solution {
-                    public int[] twoSum(int[] nums, int target) {
-                        return new int[] {0, 1};
+                    public int[] findPair(int[] nums, int target) {
+                        return new int[] {2, 3};
                     }
                 }
                 """;
-        mvc.perform(as("runner", post("/api/problems/two-sum/run"))
+        mvc.perform(as("runner", post("/api/problems/pair-with-target-sum/run"))
                         .content(body(Map.of("code", wrong, "customInputs", java.util.List.of(
                                 json.readTree("[[1,5,9],14]"))))))
                 .andExpect(status().isOk())
@@ -82,11 +82,11 @@ class ApiIntegrationTest {
 
     @Test
     void acceptedSubmissionAwardsXpAndAchievements() throws Exception {
-        String solution = problems.findBySlug("climbing-stairs").orElseThrow().getReferenceCode();
-        mvc.perform(as("solver", post("/api/problems/climbing-stairs/submit")).content(body(Map.of("code", solution))))
+        String solution = problems.findBySlug("staircase-paths").orElseThrow().getReferenceCode();
+        mvc.perform(as("solver", post("/api/problems/staircase-paths/submit")).content(body(Map.of("code", solution))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.verdict").value("ACCEPTED"))
-                .andExpect(jsonPath("$.passed").value(9))
+                .andExpect(jsonPath("$.passed").value(10))
                 .andExpect(jsonPath("$.runtimeMs", greaterThan(0.0)))
                 .andExpect(jsonPath("$.xpGained").value(20)) // 10 for an Easy + 2 achievements * 5
                 .andExpect(jsonPath("$.newAchievements[*].id", hasItem("FIRST_SOLVE")))
@@ -100,27 +100,27 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$.profile.achievements[0].achievement.title").value("Hello, World"))
                 .andExpect(jsonPath("$.recent[0].verdict").value("ACCEPTED"));
         mvc.perform(as("solver", get("/api/problems")))
-                .andExpect(jsonPath("$[?(@.slug == 'climbing-stairs')].status").value("SOLVED"));
+                .andExpect(jsonPath("$[?(@.slug == 'staircase-paths')].status").value("SOLVED"));
         mvc.perform(get("/api/leaderboard"))
                 .andExpect(jsonPath("$[?(@.handle == 'solver')].xp").value(20));
-        mvc.perform(as("solver", get("/api/problems/climbing-stairs/stats")))
+        mvc.perform(as("solver", get("/api/problems/staircase-paths/stats")))
                 .andExpect(jsonPath("$.runtimeMs.count", greaterThan(0)));
     }
 
     @Test
     void failingSubmissionReportsTheFirstFailingCase() throws Exception {
-        String wrong = "class Solution { public int climbStairs(int n) { return n; } }";
-        mvc.perform(as("learner", post("/api/problems/climbing-stairs/submit")).content(body(Map.of("code", wrong))))
+        String wrong = "class Solution { public int countWays(int n) { return n; } }";
+        mvc.perform(as("learner", post("/api/problems/staircase-paths/submit")).content(body(Map.of("code", wrong))))
                 .andExpect(jsonPath("$.verdict").value("WRONG_ANSWER"))
-                .andExpect(jsonPath("$.passed").value(3))
-                .andExpect(jsonPath("$.failedCase.input").value("[5]"))
-                .andExpect(jsonPath("$.failedCase.expected").value("8"))
-                .andExpect(jsonPath("$.failedCase.output").value("5"))
-                .andExpect(jsonPath("$.message", containsString("Wrong answer on test 4")))
+                .andExpect(jsonPath("$.passed").value(1))
+                .andExpect(jsonPath("$.failedCase.input").value("[4]"))
+                .andExpect(jsonPath("$.failedCase.expected").value("5"))
+                .andExpect(jsonPath("$.failedCase.output").value("4"))
+                .andExpect(jsonPath("$.message", containsString("Wrong answer on test 2")))
                 .andExpect(jsonPath("$.xpGained").value(0));
 
-        String broken = "class Solution { public int climbStairs(int n) { return \"x\"; } }";
-        mvc.perform(as("learner", post("/api/problems/climbing-stairs/submit")).content(body(Map.of("code", broken))))
+        String broken = "class Solution { public int countWays(int n) { return \"x\"; } }";
+        mvc.perform(as("learner", post("/api/problems/staircase-paths/submit")).content(body(Map.of("code", broken))))
                 .andExpect(jsonPath("$.verdict").value("COMPILE_ERROR"))
                 .andExpect(jsonPath("$.diagnostics[0].startLine").value(1));
     }

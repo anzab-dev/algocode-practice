@@ -1,0 +1,20 @@
+title: Best Contiguous Sum
+difficulty: MEDIUM
+order: 5
+tags: [array, dynamic-programming, divide-and-conquer]
+method: bestSum
+formerSlugs: [maximum-subarray]
+params:
+  - name: nums
+    type: "int[]"
+returnType: "int"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "If the best subarray ending at i-1 has a negative sum, is it worth extending?"
+starterCode: |
+  class Solution {
+      public int bestSum(int[] nums) {
+          
+      }
+  }

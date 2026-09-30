@@ -1,0 +1,21 @@
+title: Rainwater Between Walls
+difficulty: HARD
+order: 11
+tags: [array, two-pointers, stack]
+method: collectedWater
+formerSlugs: [trapping-rain-water]
+params:
+  - name: height
+    type: "int[]"
+returnType: "int"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "Water above a wall is limited by the smaller of the tallest wall to its left and the tallest wall to its right."
+  - "Two pointers moving inwards from the lower side avoid the extra arrays."
+starterCode: |
+  class Solution {
+      public int collectedWater(int[] height) {
+          
+      }
+  }

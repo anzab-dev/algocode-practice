@@ -1,0 +1,21 @@
+title: Products of the Others
+difficulty: MEDIUM
+order: 9
+tags: [array, prefix-sum]
+method: othersProduct
+formerSlugs: [product-of-array-except-self]
+params:
+  - name: nums
+    type: "int[]"
+returnType: "int[]"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "answer[i] = (product of everything left of i) * (product of everything right of i)."
+  - "You can build the left products in the output array, then multiply in the right products in a second pass."
+starterCode: |
+  class Solution {
+      public int[] othersProduct(int[] nums) {
+          
+      }
+  }

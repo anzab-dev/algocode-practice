@@ -1,0 +1,20 @@
+title: Merge Ranges
+difficulty: MEDIUM
+order: 8
+tags: [array, sorting]
+method: mergeRanges
+formerSlugs: [merge-intervals]
+params:
+  - name: intervals
+    type: "int[][]"
+returnType: "int[][]"
+compare: UNORDERED
+timeLimitMs: 3000
+hints:
+  - "Sorting by start time puts every overlapping interval next to the one it overlaps."
+starterCode: |
+  class Solution {
+      public int[][] mergeRanges(int[][] intervals) {
+          
+      }
+  }

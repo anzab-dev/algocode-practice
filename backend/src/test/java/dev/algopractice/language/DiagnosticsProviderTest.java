@@ -71,7 +71,7 @@ class DiagnosticsProviderTest {
                 import java.util.HashMap;
 
                 class Solution {
-                    public int[] twoSum(int[] nums, int target) {
+                    public int[] findPair(int[] nums, int target) {
                         var seen = new HashMap<Integer, Integer>();
                         for (int i = 0; i < nums.length; i++) {
                             Integer j = seen.get(target - nums[i]);

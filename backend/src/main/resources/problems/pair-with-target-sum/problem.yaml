@@ -1,0 +1,23 @@
+title: Pair With Target Sum
+difficulty: EASY
+order: 1
+tags: [array, hash-table]
+method: findPair
+formerSlugs: [two-sum]
+params:
+  - name: nums
+    type: "int[]"
+  - name: target
+    type: "int"
+returnType: "int[]"
+compare: UNORDERED
+timeLimitMs: 3000
+hints:
+  - "A brute-force double loop works, but can you do it in one pass?"
+  - "While scanning, remember every value you have seen and where. What value would complete the pair?"
+starterCode: |
+  class Solution {
+      public int[] findPair(int[] nums, int target) {
+          
+      }
+  }

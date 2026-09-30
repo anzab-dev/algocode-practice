@@ -1,6 +1,7 @@
 package dev.algopractice.problem;
 
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -11,7 +12,8 @@ import tools.jackson.databind.ObjectMapper;
 
 /**
  * Keeps the database in sync with the problem files on start-up. Problems are matched by slug
- * and only rewritten when their files changed, so submissions keep pointing at the same row.
+ * (or by a former slug after a rename) and only rewritten when their files changed, so
+ * submissions keep pointing at the same row.
  */
 @Component
 public class ProblemSeeder implements ApplicationRunner {
@@ -37,7 +39,7 @@ public class ProblemSeeder implements ApplicationRunner {
         int changed = 0;
         List<ProblemDefinition> definitions = catalog.load();
         for (ProblemDefinition def : definitions) {
-            Problem problem = problems.findBySlug(def.slug()).orElseGet(Problem::new);
+            Problem problem = find(def).orElseGet(Problem::new);
             if (def.contentHash().equals(problem.getContentHash())) {
                 continue;
             }
@@ -52,6 +54,17 @@ public class ProblemSeeder implements ApplicationRunner {
             changed++;
         }
         log.info("Problem catalog: {} problems, {} created or updated", definitions.size(), changed);
+    }
+
+    private Optional<Problem> find(ProblemDefinition def) {
+        Optional<Problem> current = problems.findBySlug(def.slug());
+        if (current.isPresent() || def.meta().formerSlugs() == null) {
+            return current;
+        }
+        return def.meta().formerSlugs().stream()
+                .map(problems::findBySlug)
+                .flatMap(Optional::stream)
+                .findFirst();
     }
 
     private void apply(ProblemDefinition def, Problem p) {
