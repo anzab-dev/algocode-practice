@@ -1,6 +1,9 @@
 package dev.algocode.progress;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 /** A badge the user can unlock. Achievements are derived from history, never stored. */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Achievement {
     FIRST_SOLVE("Hello, World", "Solve your first problem", "🎯"),
     FIVE_SOLVES("Warming Up", "Solve five problems", "🔥"),

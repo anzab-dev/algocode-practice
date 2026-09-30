@@ -89,14 +89,15 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$.passed").value(9))
                 .andExpect(jsonPath("$.runtimeMs", greaterThan(0.0)))
                 .andExpect(jsonPath("$.xpGained").value(20)) // 10 for an Easy + 2 achievements * 5
-                .andExpect(jsonPath("$.newAchievements", hasItem("FIRST_SOLVE")))
-                .andExpect(jsonPath("$.newAchievements", hasItem("CLEAN_SHEET")))
+                .andExpect(jsonPath("$.newAchievements[*].id", hasItem("FIRST_SOLVE")))
+                .andExpect(jsonPath("$.newAchievements[*].id", hasItem("CLEAN_SHEET")))
                 .andExpect(jsonPath("$.runtimeBeats", nullValue()))
                 .andExpect(jsonPath("$.streak").value(1));
 
         mvc.perform(as("solver", get("/api/me")))
                 .andExpect(jsonPath("$.profile.solved").value(1))
                 .andExpect(jsonPath("$.profile.xp").value(20))
+                .andExpect(jsonPath("$.profile.achievements[0].achievement.title").value("Hello, World"))
                 .andExpect(jsonPath("$.recent[0].verdict").value("ACCEPTED"));
         mvc.perform(as("solver", get("/api/problems")))
                 .andExpect(jsonPath("$[?(@.slug == 'climbing-stairs')].status").value("SOLVED"));
