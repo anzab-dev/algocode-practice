@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: algocode
+  datasource:
+    url: ${ALGOCODE_DB_URL:jdbc:h2:file:./data/algocode;AUTO_SERVER=TRUE}
+    username: ${ALGOCODE_DB_USER:sa}
+    password: ${ALGOCODE_DB_PASSWORD:}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+
+algocode:
+  cors-origins: ${ALGOCODE_CORS_ORIGINS:http://localhost:5173}
+  scratch:
+    time-limit-ms: 5000
+  sandbox:
+    # LOCAL runs code in a child JVM on this machine (development only).
+    # DOCKER runs every job in a locked-down, network-less container.
+    mode: ${ALGOCODE_SANDBOX_MODE:LOCAL}
+    docker-image: ${ALGOCODE_SANDBOX_IMAGE:eclipse-temurin:21-jre-alpine}
+    max-heap-mb: 256
+    max-concurrent: 4
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  # Tracing/metrics export is off until a backend is configured; see README "Telemetry".
+  tracing:
+    sampling:
+      probability: 1.0

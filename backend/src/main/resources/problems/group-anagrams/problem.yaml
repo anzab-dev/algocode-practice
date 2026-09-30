@@ -1,0 +1,20 @@
+title: Group Anagrams
+difficulty: MEDIUM
+order: 7
+tags: [array, hash-table, string, sorting]
+method: groupAnagrams
+params:
+  - name: strs
+    type: "String[]"
+returnType: "List<List<String>>"
+compare: UNORDERED_DEEP
+timeLimitMs: 3000
+hints:
+  - "Two words are anagrams exactly when their sorted letters are equal."
+  - "Use that canonical form as a map key."
+starterCode: |
+  class Solution {
+      public List<List<String>> groupAnagrams(String[] strs) {
+          
+      }
+  }

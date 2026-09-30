@@ -1,0 +1,22 @@
+title: Rotate Array
+difficulty: MEDIUM
+order: 10
+tags: [array, two-pointers, in-place]
+method: rotate
+params:
+  - name: nums
+    type: "int[]"
+  - name: k
+    type: "int"
+returnType: "void"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "k can be larger than the array length."
+  - "Reversing the whole array and then both parts rotates it in place."
+starterCode: |
+  class Solution {
+      public void rotate(int[] nums, int k) {
+          
+      }
+  }

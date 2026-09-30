@@ -1,0 +1,19 @@
+title: Best Time to Buy and Sell Stock
+difficulty: EASY
+order: 3
+tags: [array, greedy]
+method: maxProfit
+params:
+  - name: prices
+    type: "int[]"
+returnType: "int"
+compare: EXACT
+timeLimitMs: 2000
+hints:
+  - "For each day, what is the best day to have bought on before it?"
+starterCode: |
+  class Solution {
+      public int maxProfit(int[] prices) {
+          
+      }
+  }
