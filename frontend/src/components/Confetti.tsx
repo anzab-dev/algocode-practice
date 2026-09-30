@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
+import { cssVar } from "../theme";
 
-const COLORS = ["#f0a33c", "#5fb865", "#548af7", "#f75464", "#e0b64c", "#c77dff"];
+const COLOR_VARS = ["--accent", "--accent-2", "--easy", "--medium", "--hard", "--ok"];
 
 /** A short burst of confetti, drawn on a full-screen canvas. Remount (change `burst`) to replay. */
 export function Confetti({ burst }: { burst: number }) {
@@ -12,6 +13,7 @@ export function Confetti({ burst }: { burst: number }) {
     const el = canvas.current;
     const ctx = el.getContext("2d");
     if (!ctx) return;
+    const colors = COLOR_VARS.map(cssVar).filter(Boolean);
     el.width = window.innerWidth;
     el.height = window.innerHeight;
     const pieces = Array.from({ length: 140 }, () => ({
@@ -21,7 +23,7 @@ export function Confetti({ burst }: { burst: number }) {
       vy: -Math.random() * 14 - 4,
       size: 5 + Math.random() * 6,
       spin: Math.random() * Math.PI,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      color: colors[Math.floor(Math.random() * colors.length)],
     }));
     let frame = 0;
     let raf = 0;

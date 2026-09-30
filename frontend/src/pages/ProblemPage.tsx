@@ -16,12 +16,16 @@ import { Confetti } from "../components/Confetti";
 import { DiagnosticsStatus } from "../components/DiagnosticsStatus";
 import { Difficulty } from "../components/Difficulty";
 import { Histogram } from "../components/Histogram";
+import { Icon } from "../components/Icon";
 import { announceAchievements, notifyProgressChanged } from "../components/progress";
 import { SCRATCH_TEMPLATE, ScratchWorkbench } from "../components/ScratchWorkbench";
 import { Split } from "../components/Split";
 import { CodeEditor } from "../editor/CodeEditor";
 import { describeArgs, formatBytes, formatMs, parseArgs, relativeTime, verdictLabel } from "../format";
 import { drafts } from "../user";
+
+/** Stored with the drafts: whether the problem pane sits left of the editor. */
+const SWAP_KEY = "layout.swapped";
 
 type LeftTab = "description" | "submissions" | "result";
 type ConsoleTab = "testcase" | "result";
@@ -52,6 +56,7 @@ export function ProblemPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
   const [burst, setBurst] = useState(0);
+  const [swapped, setSwapped] = useState(() => drafts.get(SWAP_KEY) === "1");
   const busy = running || submitting;
 
   useEffect(() => {
@@ -73,6 +78,11 @@ export function ProblemPage() {
       })
       .catch((e: Error) => setLoadError(e.message));
   }, [slug]);
+
+  const toggleSwap = () => {
+    drafts.set(SWAP_KEY, swapped ? "0" : "1");
+    setSwapped(!swapped);
+  };
 
   const updateCode = (value: string) => {
     setCode(value);
@@ -143,17 +153,20 @@ export function ProblemPage() {
     <div className="pane" style={{ flex: 1 }}>
       <div className="tabs">
         <button className={leftTab === "description" ? "active" : ""} onClick={() => setLeftTab("description")}>
-          📄 Description
+          Problem
         </button>
         <button className={leftTab === "submissions" ? "active" : ""} onClick={() => setLeftTab("submissions")}>
-          🕘 Submissions
+          Attempts
         </button>
         {(submitResult || submitting) && (
           <button className={leftTab === "result" ? "active" : ""} onClick={() => setLeftTab("result")}>
-            🏁 Result
+            Verdict
           </button>
         )}
         <span className="spacer" />
+        <button className="ghost" title="Swap the editor and problem sides" onClick={toggleSwap}>
+          <Icon name="swap" size={16} />
+        </button>
         {problem.previousSlug && (
           <Link to={`/problems/${problem.previousSlug}`} title="Previous problem">
             <button className="ghost">‹</button>
@@ -181,8 +194,7 @@ export function ProblemPage() {
     <div className="pane" style={{ flex: 1 }}>
       <div className="editor-toolbar">
         <ModeSwitch mode={mode} onChange={setMode} />
-        <span className="small muted">Java 21</span>
-        <span className="spacer" />
+        <span className="lang-chip">Java 21</span>
         <button
           className="ghost"
           title="Reset to the starter code"
@@ -191,6 +203,13 @@ export function ProblemPage() {
           }}
         >
           ↺ Reset
+        </button>
+        <span className="spacer" />
+        <button className="outline" onClick={run} disabled={busy} title="Run sample and custom inputs (Ctrl+')">
+          {running ? <span className="spinner" /> : "▷"} Try
+        </button>
+        <button className="accent" onClick={submit} disabled={busy} title="Judge against every hidden test (Ctrl+Enter)">
+          {submitting ? <span className="spinner" /> : "✓"} Submit
         </button>
       </div>
       <div className="editor-host">
@@ -213,19 +232,15 @@ export function ProblemPage() {
     <div className="pane console" style={{ flex: 1 }}>
       <div className="tabs">
         <button className={consoleTab === "testcase" ? "active" : ""} onClick={() => setConsoleTab("testcase")}>
-          ✅ Testcase
+          Inputs
         </button>
         <button className={consoleTab === "result" ? "active" : ""} onClick={() => setConsoleTab("result")}>
-          ▸ Test Result
+          Output
         </button>
-        <div className="console-actions">
-          <button onClick={run} disabled={busy} title="Run sample and custom tests (Ctrl+')">
-            {running ? <span className="spinner" /> : "▶"} Run
-          </button>
-          <button className="primary" onClick={submit} disabled={busy} title="Submit against all tests (Ctrl+Enter)">
-            {submitting ? <span className="spinner" /> : "☁"} Submit
-          </button>
-        </div>
+        <span className="spacer" />
+        <span className="small muted console-hint">
+          <kbd>Ctrl</kbd>+<kbd>'</kbd> try · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> submit
+        </span>
       </div>
       <div className="pane-body">
         {actionError && consoleTab === "testcase" && <div className="error-text" style={{ marginBottom: 8 }}>{actionError}</div>}
@@ -252,7 +267,7 @@ export function ProblemPage() {
     </div>
   );
 
-  const right =
+  const editorSide =
     mode === "solution" ? (
       <Split direction="vertical" initial={64} first={solutionEditor} second={consolePane} />
     ) : (
@@ -267,8 +282,12 @@ export function ProblemPage() {
     );
 
   return (
-    <div className="workspace">
-      <Split initial={42} first={left} second={right} />
+    <div className={`workspace ${swapped ? "swapped" : ""}`}>
+      {swapped ? (
+        <Split key="info-first" initial={42} first={left} second={editorSide} />
+      ) : (
+        <Split key="editor-first" initial={58} first={editorSide} second={left} />
+      )}
       <Confetti burst={burst} />
     </div>
   );
@@ -306,7 +325,7 @@ function Description({ problem }: { problem: ProblemDetail }) {
       <Markdown>{problem.description}</Markdown>
       {problem.hints.map((hint, i) => (
         <details key={i} className="hint">
-          <summary>💡 Hint {i + 1}</summary>
+          <summary>Hint {i + 1}</summary>
           <p>{hint}</p>
         </details>
       ))}
@@ -335,7 +354,7 @@ function TestcaseEditor({
       <div className="case-chips">
         {all.map((_, i) => (
           <button key={i} className={`case-chip ${i === index ? "active" : ""}`} onClick={() => onActive(i)}>
-            {i < samples.length ? `Case ${i + 1}` : `Custom ${i - samples.length + 1}`}
+            {i < samples.length ? `Sample ${i + 1}` : `Custom ${i - samples.length + 1}`}
           </button>
         ))}
         {custom.length < 5 && (
@@ -430,7 +449,7 @@ function RunResultView({
         {result.cases.map((rc, i) => (
           <button key={i} className={`case-chip ${i === active ? "active" : ""}`} onClick={() => onActive(i)}>
             <span className={`dot ${rc.passed ? "pass" : "fail"}`} />
-            {rc.custom ? `Custom ${i - firstCustom + 1}` : `Case ${i + 1}`}
+            {rc.custom ? `Custom ${i - firstCustom + 1}` : `Sample ${i + 1}`}
           </button>
         ))}
       </div>
@@ -487,7 +506,7 @@ function SubmitResult({
       <div className="result-head">
         <span className={`verdict ${verdictTone(result.verdict)}`}>{verdictLabel(result.verdict)}</span>
         <span className="muted">
-          {result.passed} / {result.total} testcases passed
+          {result.passed} / {result.total} tests passed
         </span>
       </div>
       {(result.xpGained > 0 || result.newAchievements.length > 0) && (
@@ -506,8 +525,8 @@ function SubmitResult({
       )}
       {accepted && (
         <div className="metric-cards">
-          <Metric label="Runtime" value={formatMs(result.runtimeMs)} beats={result.runtimeBeats} />
-          <Metric label="Peak memory" value={formatBytes(result.memoryBytes)} beats={result.memoryBeats} />
+          <Metric label="Runtime" value={formatMs(result.runtimeMs)} beats={result.runtimeBeats} verb="Faster" />
+          <Metric label="Peak memory" value={formatBytes(result.memoryBytes)} beats={result.memoryBeats} verb="Leaner" />
         </div>
       )}
       {accepted && result.allocatedBytes != null && (
@@ -541,14 +560,23 @@ function SubmitResult({
   );
 }
 
-function Metric({ label, value, beats }: { label: string; value: string; beats: number | null }) {
+function Metric({ label, value, beats, verb }: { label: string; value: string; beats: number | null; verb: string }) {
   return (
     <div className="metric">
       <div className="label">{label}</div>
       <div className="value">{value}</div>
-      <div className="beats">
-        {beats == null ? "First accepted solution here — you set the bar!" : <>Beats <strong>{beats.toFixed(1)}%</strong> of accepted solutions</>}
-      </div>
+      {beats == null ? (
+        <div className="beats">First accepted solution here, so you set the bar.</div>
+      ) : (
+        <>
+          <div className="percentile" aria-hidden="true">
+            <span style={{ width: `${beats}%` }} />
+          </div>
+          <div className="beats">
+            {verb} than <strong>{beats.toFixed(1)}%</strong> of accepted runs
+          </div>
+        </>
+      )}
     </div>
   );
 }

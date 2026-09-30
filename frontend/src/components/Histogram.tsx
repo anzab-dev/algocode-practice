@@ -43,7 +43,7 @@ export function Histogram({ distribution, format, label }: Props) {
           const h = b.count === 0 ? 0 : Math.max(3, (b.count / max) * (BASE - 14));
           const x = i * slot + 1;
           const isMine = i === mineIndex;
-          const fill = isMine ? "var(--accent)" : hover === i ? "#6f8fd6" : "#3d5a99";
+          const fill = isMine ? "var(--accent)" : hover === i ? "var(--chart-hover)" : "var(--chart)";
           return (
             <g key={i} onMouseEnter={() => setHover(i)}>
               {/* generous hit target: the whole column */}

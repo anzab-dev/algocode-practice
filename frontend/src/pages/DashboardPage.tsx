@@ -61,7 +61,7 @@ export function DashboardPage() {
         </div>
         <div className="card">
           <h3>Streak</h3>
-          <div className="big-number">🔥 {p.currentStreak}</div>
+          <div className="big-number streak-number">🔥 {p.currentStreak}</div>
           <div className="small muted">longest {p.longestStreak} day(s)</div>
         </div>
         <div className="card">
@@ -74,7 +74,7 @@ export function DashboardPage() {
           </div>
           <div className="small">
             {(["EASY", "MEDIUM", "HARD"] as D[]).map((d) => (
-              <span key={d} style={{ marginRight: 10 }}>
+              <span key={d} style={{ marginRight: 10, whiteSpace: "nowrap", display: "inline-block" }}>
                 <Difficulty value={d} /> {p.byDifficulty[d].solved}
               </span>
             ))}

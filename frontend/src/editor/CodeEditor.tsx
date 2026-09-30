@@ -2,6 +2,7 @@ import Editor, { type OnMount } from "@monaco-editor/react";
 import type * as Monaco from "monaco-editor";
 import { useEffect, useRef } from "react";
 import type { Diagnostic } from "../api";
+import { monacoThemeName, useTheme } from "../theme";
 import { attachDiagnostics, installIntellijKeys } from "./javaLanguage";
 import { setupMonaco } from "./monacoSetup";
 
@@ -24,6 +25,7 @@ interface Props {
 
 /** Monaco configured as a Java editor with live diagnostics, completion and IntelliJ key bindings. */
 export function CodeEditor({ path, value, onChange, onDiagnostics, shortcuts, onReady }: Props) {
+  const theme = useTheme();
   const cleanup = useRef<(() => void) | null>(null);
   const diagnosticsCallback = useRef(onDiagnostics);
   const shortcutsRef = useRef(shortcuts);
@@ -50,7 +52,7 @@ export function CodeEditor({ path, value, onChange, onDiagnostics, shortcuts, on
     <Editor
       path={path}
       language="java"
-      theme="darcula"
+      theme={monacoThemeName(theme)}
       value={value}
       onChange={(v) => onChange(v ?? "")}
       onMount={handleMount}

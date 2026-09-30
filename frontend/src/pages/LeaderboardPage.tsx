@@ -30,7 +30,7 @@ export function LeaderboardPage() {
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={r.handle} style={r.handle === me ? { background: "rgba(84,138,247,0.12)" } : undefined}>
+                <tr key={r.handle} style={r.handle === me ? { background: "var(--accent-soft)" } : undefined}>
                   <td>{MEDALS[i] ?? i + 1}</td>
                   <td className="mono">@{r.handle}</td>
                   <td>

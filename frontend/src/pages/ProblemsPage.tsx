@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, type Difficulty as D, type ProblemSummary } from "../api";
-import { Difficulty } from "../components/Difficulty";
+import { Difficulty, DIFFICULTY_LABEL } from "../components/Difficulty";
 import { useMe } from "../components/progress";
 
 const DIFF_COLORS: Record<D, string> = { EASY: "var(--easy)", MEDIUM: "var(--medium)", HARD: "var(--hard)" };
@@ -33,15 +33,88 @@ export function ProblemsPage() {
   );
 
   const profile = me?.profile;
+  const solvedCount = (problems ?? []).filter((p) => p.status === "SOLVED").length;
   return (
-    <div className="container">
-      <div className="hero">
+    <div className="container problems-page">
+      <section className="problems-main">
+        <header className="page-head">
+          <div>
+            <h1>Problem set</h1>
+            <p className="muted">
+              {problems ? `${problems.length} problems · ${solvedCount} solved` : "Loading…"}
+            </p>
+          </div>
+          <input
+            className="search"
+            placeholder="Search by title"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </header>
+
+        <div className="filters">
+          <div className="chip-group" role="radiogroup" aria-label="Difficulty">
+            {(["", "EASY", "MEDIUM", "HARD"] as (D | "")[]).map((d) => (
+              <button
+                key={d || "all"}
+                role="radio"
+                aria-checked={difficulty === d}
+                className={`chip ${difficulty === d ? "active" : ""}`}
+                onClick={() => setDifficulty(d)}
+              >
+                {d ? DIFFICULTY_LABEL[d] : "All levels"}
+              </button>
+            ))}
+          </div>
+          <select value={tag} onChange={(e) => setTag(e.target.value)} aria-label="Topic">
+            <option value="">All topics</option>
+            {tags.map((t) => (
+              <option key={t}>{t}</option>
+            ))}
+          </select>
+        </div>
+
+        {error && <div className="empty error-text">Could not load problems: {error}</div>}
+        {!error && !problems && <div className="empty">Loading problems…</div>}
+        {problems && (
+          <div className="problem-grid">
+            {visible.map((p) => (
+              <Link key={p.slug} to={`/problems/${p.slug}`} className={`problem-tile ${p.status ?? ""}`}>
+                <div className="tile-top">
+                  <span className="tile-number mono">#{String(problems.indexOf(p) + 1).padStart(2, "0")}</span>
+                  <Difficulty value={p.difficulty} />
+                  <span className="spacer" />
+                  <span className={`status-icon ${p.status ?? ""}`} title={p.status ? p.status.toLowerCase() : "Not attempted"}>
+                    {p.status === "SOLVED" ? "✓" : p.status === "ATTEMPTED" ? "◐" : ""}
+                  </span>
+                </div>
+                <div className="tile-title">{p.title}</div>
+                <div className="tile-foot">
+                  <span>
+                    {p.tags.slice(0, 3).map((t) => (
+                      <span key={t} className="tag">
+                        {t}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="small muted" title="Share of submissions accepted">
+                    {p.submissions ? `${p.acceptanceRate.toFixed(0)}% pass` : "new"}
+                  </span>
+                </div>
+              </Link>
+            ))}
+            {visible.length === 0 && <div className="empty">No problems match these filters.</div>}
+          </div>
+        )}
+      </section>
+
+      <aside className="problems-aside">
         <div className="card daily">
-          <div className="eyebrow">Daily challenge</div>
+          <div className="eyebrow">Today's pick</div>
           {daily ? (
             <>
               <h2>{daily.title}</h2>
-              <div className="row" style={{ marginBottom: 14 }}>
+              <div className="row" style={{ marginBottom: 14, flexWrap: "wrap" }}>
                 <Difficulty value={daily.difficulty} />
                 {daily.tags.map((t) => (
                   <span key={t} className="tag">
@@ -50,7 +123,7 @@ export function ProblemsPage() {
                 ))}
               </div>
               <Link to={`/problems/${daily.slug}`}>
-                <button className="accent">{daily.status === "SOLVED" ? "Solve it faster" : "Start challenge"} →</button>
+                <button className="accent">{daily.status === "SOLVED" ? "Beat your time" : "Open it"} →</button>
               </Link>
             </>
           ) : (
@@ -60,15 +133,12 @@ export function ProblemsPage() {
         <div className="card">
           <h3>Your progress</h3>
           {profile ? (
-            <div className="progress-rings">
-              <div style={{ textAlign: "center" }}>
-                <div className="big-number">
-                  {profile.solved}
-                  <span className="muted" style={{ fontSize: 16 }}>
-                    /{profile.totalProblems}
-                  </span>
-                </div>
-                <div className="small muted">solved</div>
+            <>
+              <div className="big-number">
+                {profile.solved}
+                <span className="muted" style={{ fontSize: 16 }}>
+                  /{profile.totalProblems} solved
+                </span>
               </div>
               <div className="diff-bars">
                 {(["EASY", "MEDIUM", "HARD"] as D[]).map((d) => {
@@ -88,80 +158,12 @@ export function ProblemsPage() {
                   );
                 })}
               </div>
-            </div>
+            </>
           ) : (
             <div className="muted">Loading…</div>
           )}
         </div>
-      </div>
-
-      <div className="filters">
-        <input placeholder="Search problems" value={query} onChange={(e) => setQuery(e.target.value)} />
-        <select value={difficulty} onChange={(e) => setDifficulty(e.target.value as D | "")}>
-          <option value="">All difficulties</option>
-          <option value="EASY">Easy</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HARD">Hard</option>
-        </select>
-        <select value={tag} onChange={(e) => setTag(e.target.value)}>
-          <option value="">All topics</option>
-          {tags.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-        {error && <div className="empty error-text">Could not load problems: {error}</div>}
-        {!error && !problems && <div className="empty">Loading problems…</div>}
-        {problems && (
-          <table className="problem-table">
-            <thead>
-              <tr>
-                <th style={{ width: 40 }} />
-                <th>Title</th>
-                <th>Topics</th>
-                <th style={{ width: 110 }}>Acceptance</th>
-                <th style={{ width: 90 }}>Difficulty</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((p) => (
-                <tr key={p.slug}>
-                  <td>
-                    <span className={`status-icon ${p.status ?? ""}`} title={p.status ?? "Not attempted"}>
-                      {p.status === "SOLVED" ? "✓" : p.status === "ATTEMPTED" ? "◐" : ""}
-                    </span>
-                  </td>
-                  <td>
-                    <Link to={`/problems/${p.slug}`}>
-                      {problems.indexOf(p) + 1}. {p.title}
-                    </Link>
-                  </td>
-                  <td>
-                    {p.tags.slice(0, 3).map((t) => (
-                      <span key={t} className="tag">
-                        {t}
-                      </span>
-                    ))}
-                  </td>
-                  <td className="muted">{p.submissions ? `${p.acceptanceRate.toFixed(1)}%` : "–"}</td>
-                  <td>
-                    <Difficulty value={p.difficulty} />
-                  </td>
-                </tr>
-              ))}
-              {visible.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="empty">
-                    No problems match these filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
+      </aside>
     </div>
   );
 }
