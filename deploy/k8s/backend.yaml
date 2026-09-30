@@ -91,7 +91,10 @@ spec:
         # backend on a node pool that allows it or swap in a rootless/sysbox runtime.
         - name: sandbox-docker
           image: docker:27-dind
-          args: ["--host=tcp://127.0.0.1:2375", "--host=unix:///var/run/docker.sock"]
+          args:
+            - dockerd
+            - --host=unix:///var/run/docker.sock
+            - --host=tcp://127.0.0.1:2375
           env:
             - name: DOCKER_TLS_CERTDIR
               value: ""
